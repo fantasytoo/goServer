@@ -2,6 +2,17 @@ package findPath
 
 import "math"
 
+type Node struct {
+	block  *Block
+	gCost  float64
+	hCost  float64
+	parent *Node
+}
+
+func (n Node) GetF() float64 {
+	return n.gCost + n.hCost
+}
+
 /**
 格子
 */
@@ -11,7 +22,7 @@ type Cell struct {
 }
 
 type Block struct {
-	Cell     Cell
+	Cell     *Cell
 	Id       int64
 	Walkable bool
 }
@@ -60,4 +71,26 @@ func GetCoord(index int64) *Cell {
 			return &Cell{X: x, Y: z}
 		}
 	}
+}
+
+func GetBlock(cell *Cell, tagIds []int16) *Block {
+	return &Block{Id: ComTwoInt16(cell.X, cell.Y), Cell: cell, Walkable: BlockIsWalkable(tagIds)}
+}
+
+func BlockIsWalkable(tagIds []int16) bool {
+	if tagIds == nil || len(tagIds) <= 0 {
+		return false
+	}
+	for _, tag := range tagIds {
+		if (tag >= 32 && tag <= 35) || (tag >= 51 && tag <= 53) {
+			return true
+		}
+	}
+	return false
+}
+
+func ComTwoInt16(x int64, y int64) int64 {
+	xt := x << 16
+	xt = xt | (y & 0xFFFF)
+	return xt
 }
