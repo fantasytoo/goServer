@@ -8,6 +8,7 @@ type IConn interface {
 	Start()
 	Send(message proto.Message) error
 	SendByte(message []byte) error
+	SendIdBytes(msgid uint32, message []byte) error
 	GetConn() interface{}
 	GetCreateTime() int64
 	GetOptions() IOptions

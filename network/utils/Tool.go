@@ -6,18 +6,20 @@ import (
 	"encoding/binary"
 	"encoding/csv"
 	"fmt"
-	"google.golang.org/protobuf/proto"
+	"go_test/network/message"
 	"io"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+
+	"google.golang.org/protobuf/proto"
 )
 
 var mutex sync.Mutex
 
-//int32转换成字节
+// int32转换成字节
 func IntToBytes(n int32) []byte {
 	x := n
 	bytesBuffer := bytes.NewBuffer([]byte{})
@@ -25,7 +27,15 @@ func IntToBytes(n int32) []byte {
 	return bytesBuffer.Bytes()
 }
 
-//long转换成字节
+// int32转换成字节
+func UIntToBytes(n uint32) []byte {
+	x := n
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	binary.Write(bytesBuffer, binary.BigEndian, x)
+	return bytesBuffer.Bytes()
+}
+
+// long转换成字节
 func LongToBytes(n int64) []byte {
 	x := n
 	bytesBuffer := bytes.NewBuffer([]byte{})
@@ -33,7 +43,7 @@ func LongToBytes(n int64) []byte {
 	return bytesBuffer.Bytes()
 }
 
-//short转换成字节
+// short转换成字节
 func ShortToBytes(n int16) []byte {
 	x := n
 	bytesBuffer := bytes.NewBuffer([]byte{})
@@ -41,7 +51,15 @@ func ShortToBytes(n int16) []byte {
 	return bytesBuffer.Bytes()
 }
 
-//字节转换成int
+// Uint转换成字节
+func UintShortToBytes(n uint16) []byte {
+	x := n
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	binary.Write(bytesBuffer, binary.BigEndian, x)
+	return bytesBuffer.Bytes()
+}
+
+// 字节转换成int
 func BytesToInt(b []byte) int32 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var x int32
@@ -49,7 +67,7 @@ func BytesToInt(b []byte) int32 {
 	return x
 }
 
-//字节转换成long
+// 字节转换成long
 func BytesToLong(b []byte) int64 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var x int64
@@ -57,7 +75,7 @@ func BytesToLong(b []byte) int64 {
 	return x
 }
 
-//字节转换成long
+// 字节转换成long
 func BytesToShort(b []byte) int16 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var x int16
@@ -65,7 +83,15 @@ func BytesToShort(b []byte) int16 {
 	return x
 }
 
-//把协议名称转为唯一协议编号
+// 字节转换成unit16
+func BytesToUnitShort(b []byte) uint16 {
+	bytesBuffer := bytes.NewBuffer(b)
+	var x uint16
+	binary.Read(bytesBuffer, binary.BigEndian, &x)
+	return x
+}
+
+// 把协议名称转为唯一协议编号
 func ProtocalNumber(replacement string) int32 {
 	var h int32
 	h = 0
@@ -75,7 +101,7 @@ func ProtocalNumber(replacement string) int32 {
 	return h
 }
 
-//获取协议名称
+// 获取协议名称
 func GetProtoName(t proto.Message) string {
 	x := proto.MessageName(t)
 	proto_ := strings.Split(string(x), ".")
@@ -86,7 +112,18 @@ func GetProtoName(t proto.Message) string {
 	}
 }
 
-//连个字符串的key合并
+// 获取协议id
+func GetProtoId(t proto.Message) uint32 {
+	x := string(proto.MessageName(t))
+	proto_ := strings.Split(string(x), ".")
+	if len(proto_) > 0 {
+		return message.MsgId[proto_[1]]
+	} else {
+		return 0
+	}
+}
+
+// 连个字符串的key合并
 func MergeMapString(varA map[string]string, varB map[string]string) map[string]string {
 	data := make(map[string]string, len(varA)+len(varB))
 	for k, v := range varA {
@@ -98,7 +135,7 @@ func MergeMapString(varA map[string]string, varB map[string]string) map[string]s
 	return data
 }
 
-//读取csv数据
+// 读取csv数据
 func ReadCSVData(_file string) [][]string {
 	mutex.Lock()
 	csvFile, err := os.Open(_file)
@@ -131,7 +168,7 @@ func ReadCSVData(_file string) [][]string {
 	return dataRecords
 }
 
-//读取txt文件
+// 读取txt文件
 func ReadTXTData(_file string) []string {
 	mutex.Lock()
 	file, err := os.Open(_file)

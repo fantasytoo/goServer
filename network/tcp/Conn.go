@@ -97,28 +97,37 @@ func (c *Conn) GetConn() interface{} {
 	return c.conn
 }
 
-//发送协议体
+// 发送协议体
 func (c *Conn) Send(message proto.Message) error {
 	data, err := proto.Marshal(message)
-	protoId := utils.ProtocalNumber(utils.GetProtoName(message))
+	protoId := utils.GetProtoId(message)
 	if err != nil {
-		log.AppLogger.Error("发送消息时，序列化失败 : "+err.Error(), zap.Int32("MessageId", protoId))
+		log.AppLogger.Error("发送消息时，序列化失败 : "+err.Error(), zap.Uint32("MessageId", protoId))
 		return err
 	}
 	if c.isClosed == true {
 		log.AppLogger.Info("send msg(proto) channel It has been closed ... ")
 		return errors.New("send msg(proto) channel It has been closed ... ")
 	}
-	c.sendQueue <- c.pkg.Pack(network.TransitData{protoId, data}, c.isPos)
+	c.sendQueue <- c.pkg.Pack(network.TransitData{(protoId), data}, c.isPos)
 	return nil
 }
 
-//发送组装好的协议，但是加密始终是在组装包的时候完成加密功能
+// 发送组装好的协议，但是加密始终是在组装包的时候完成加密功能
 func (c *Conn) SendByte(message []byte) error {
 	if c.isClosed == true {
 		log.AppLogger.Info("send msg(byte[]) channel It has been closed ... ")
 	}
 	c.sendQueue <- message
+	return nil
+}
+
+func (c *Conn) SendIdBytes(protoId uint32, message []byte) error {
+	if c.isClosed == true {
+		log.AppLogger.Info("send msg(proto) channel It has been closed ... ")
+		return errors.New("send msg(proto) channel It has been closed ... ")
+	}
+	c.sendQueue <- c.pkg.Pack(network.TransitData{protoId, message}, c.isPos)
 	return nil
 }
 
@@ -145,7 +154,7 @@ func (c *Conn) Start() {
 			}
 			break
 		}
-		msgLen := utils.BytesToInt(headData)
+		msgLen := utils.BytesToUnitShort(headData)
 		if msgLen > 0 {
 			//msg 是有data数据的，需要再次读取data数据
 			contentData := make([]byte, msgLen)
